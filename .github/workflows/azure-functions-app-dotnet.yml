@@ -30,6 +30,7 @@ jobs:
         
       - name: 'Install Azure CLI'
         run: |
+          echo "Azure CLI installation began"
           curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
           az --version
 
