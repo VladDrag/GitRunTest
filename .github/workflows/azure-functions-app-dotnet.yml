@@ -11,20 +11,14 @@ env:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest # For Windows, use windows-latest
+    runs-on: ubuntu-latest
     environment: dev
     steps:
       - name: 'Checkout GitHub Action'
-        uses: actions/checkout@v3
-
-      # If you want to use Azure RBAC instead of Publish Profile, then uncomment the task below
-      # - name: 'Login via Azure CLI'
-      #   uses: azure/login@v1
-      #   with:
-      #     creds: ${{ secrets.AZURE_RBAC_CREDENTIALS }} # set up AZURE_RBAC_CREDENTIALS secrets in your repository
+        uses: actions/checkout@v2
 
       - name: Setup DotNet ${{ env.DOTNET_VERSION }} Environment
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v1
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -33,20 +27,15 @@ jobs:
           pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
           dotnet build --configuration Release --output ./output
           popd
-        shell: bash
         
       - name: 'Install Azure CLI'
         run: |
           curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-          sudo apt-get update
-          sudo apt-get install azure-cli
-        shell: bash
+          az --version
 
-      - name: 'Login Azure'
+      - name: 'Login Azure using service principal'
         run: |
-          az login --service-principal -u ${{ secrets.AZURE_SP_CLIENT_ID }} -p ${{ secrets.AZURE_SP_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_SP_TENANT_ID }}
-          az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        shell: bash
+          az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
 
       - name: 'Run Azure Functions Action'
         uses: Azure/functions-action@v1
@@ -54,4 +43,4 @@ jobs:
         with:
           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
           package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
-          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }} # Remove publish-profile to use Azure RBAC
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
