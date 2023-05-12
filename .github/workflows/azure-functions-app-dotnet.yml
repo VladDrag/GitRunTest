@@ -52,6 +52,9 @@ jobs:
           pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
           dotnet build --configuration Release --output ./output
           popd
+        
+      - name: 'Install Azure CLI'
+        uses: azure/cli@v1.0.0
 
       - name: 'Login Azure'
         uses: azure/login@v1
